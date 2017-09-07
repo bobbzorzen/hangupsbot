@@ -58,6 +58,7 @@ class EventHandler:
     def handle(self, bot, event):
         """Handle event"""
         wrapped_event = ConversationEvent(bot, event)
+        print("Currently hijacking event handling with message from: " + wrapped_event.user.full_name + " - " + wrapped_event.text)
         if logging.root.level == logging.DEBUG:
             wrapped_event.print_debug()
 

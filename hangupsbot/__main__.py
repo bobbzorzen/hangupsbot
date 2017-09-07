@@ -17,10 +17,10 @@ from hangups import http_utils
 from hangups.conversation import Conversation
 from hangups.ui.utils import get_conv_name
 
-import hangupsbot.config
-from hangupsbot.version import __version__
-from hangupsbot.utils import text_to_segments
-from hangupsbot.handlers import handler
+import config
+from version import __version__
+from utils import text_to_segments
+from handlers import handler
 
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -39,7 +39,7 @@ class HangupsBot:
         self._user_list = None        # hangups.UserList
 
         # Load config file
-        self.config = hangupsbot.config.Config(config_path)
+        self.config = config.Config(config_path)
 
         # Handle signals on Unix
         # (add_signal_handler is not implemented on Windows)
@@ -215,6 +215,8 @@ def main():
     default_log_path = os.path.join(dirs.user_data_dir, 'hangupsbot.log')
     default_token_path = os.path.join(dirs.user_data_dir, 'refresh_token.txt')
     default_config_path = os.path.join(dirs.user_data_dir, 'config.json')
+
+    print("Token path: ", default_token_path)
 
     # Configure argument parser
     parser = argparse.ArgumentParser(prog='hangupsbot',
