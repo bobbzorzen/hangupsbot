@@ -1,4 +1,4 @@
-import os, glob, logging, itertools, asyncio
+import os, glob, logging, itertools, asyncio, socket
 
 import hangups
 from hangups.ui.utils import get_conv_name
@@ -53,12 +53,16 @@ class EventHandler:
             return wrapper(args[0])
         else:
             return wrapper
+    def send_message_to_server(self, message):
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientsocket.connect(('localhost', 8089))
+        clientsocket.send(bytes(message, 'UTF-8'))
 
     @asyncio.coroutine
     def handle(self, bot, event):
         """Handle event"""
         wrapped_event = ConversationEvent(bot, event)
-        print("Currently hijacking event handling with message from: " + wrapped_event.user.full_name + " - " + wrapped_event.text)
+        #self.send_message_to_server(str(wrapped_event.text))
         if logging.root.level == logging.DEBUG:
             wrapped_event.print_debug()
 

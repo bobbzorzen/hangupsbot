@@ -21,9 +21,34 @@ import config
 from version import __version__
 from utils import text_to_segments
 from handlers import handler
+import socket
 
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+
+
+class ConversationEvent:
+    """Cenversation event wrapper"""
+    def __init__(self, bot, conv_event):
+        self.conv_event = conv_event
+        self.conv_id = conv_event.conversation_id
+        self.conv = bot._conv_list.get(self.conv_id)
+        self.user_id = conv_event.user_id
+        self.user = self.conv.get_user(self.user_id)
+        self.timestamp = conv_event.timestamp
+        self.text = conv_event.text.strip() if isinstance(conv_event, hangups.ChatMessageEvent) else ''
+
+    def print_debug(self):
+        """Print informations about conversation event"""
+        print(_('Conversation ID: {}').format(self.conv_id))
+        print(_('Conversation name: {}').format(get_conv_name(self.conv, truncate=True)))
+        print(_('User ID: {}').format(self.user_id))
+        print(_('User name: {}').format(self.user.full_name))
+        print(_('Timestamp: {}').format(self.timestamp.astimezone(tz=None).strftime('%Y-%m-%d %H:%M:%S')))
+        print(_('Text: {}').format(self.text))
+        print()
+
 
 
 class HangupsBot:
@@ -40,6 +65,9 @@ class HangupsBot:
 
         # Load config file
         self.config = config.Config(config_path)
+
+        self.commandcenter = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.commandcenter.connect(('localhost', 8089))
 
         # Handle signals on Unix
         # (add_signal_handler is not implemented on Windows)
@@ -200,6 +228,9 @@ class HangupsBot:
     @asyncio.coroutine
     def _on_event(self, conv_event):
         """Handle conversation events"""
+        wrapped_event = ConversationEvent(self, conv_event)
+        print("Currently hijacking event handling with message from: " + wrapped_event.user.full_name + " - " + wrapped_event.text)
+        self.commandcenter.send(bytes(wrapped_event.user.full_name + " - " + wrapped_event.text, 'UTF-8'))
         yield from handler.handle(self, conv_event)
 
     @asyncio.coroutine
